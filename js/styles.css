@@ -1,0 +1,35 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+  'FiraCode Nerd Font', 'Fira Code', monospace;
+  background-color: #f0f0f0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#app {
+  display: inline-block;
+  white-space: pre;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.cursor {
+        display: block;
+        position: absolute;
+        width: 1ch;
+        height: 1.2em;
+        top: 0;
+        left: 0;
+        background-color: #fff;
+        z-index: 0;
+}
+
+.row {
+  z-index: 1;
+  position: relative;
+}
