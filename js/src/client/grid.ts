@@ -3,8 +3,6 @@ import { Cell, Highlight } from "./types";
 import { invert } from "./util";
 
 export class Grid {
-  cursorEl: HTMLElement;
-
   constructor(
     private container: HTMLElement,
     private cols: number,
@@ -14,10 +12,7 @@ export class Grid {
     window.addEventListener("resize", () => {
       this.calibrateFontSize();
     });
-    this.cursorEl = document.createElement("div");
-    this.cursorEl.className = "cursor";
     const cursorColor = this.highlights.getCursorColor();
-    this.cursorEl.style.backgroundColor = cursorColor;
     const underCursorStyle = document.getElementById("under-cursor-style") ??
       (() => {
         const el = document.createElement("style");
@@ -28,6 +23,7 @@ export class Grid {
     underCursorStyle.innerHTML = `
       .under-cursor {
         color: ${invert(cursorColor)} !important;
+        background-color: ${cursorColor} !important;
       }
     `;
 
@@ -68,7 +64,6 @@ export class Grid {
     }
 
     this.calibrateFontSize();
-    this.container.appendChild(this.cursorEl);
   }
 
   drawLine(row: number, colStart: number, cells: Cell[]) {
@@ -92,17 +87,10 @@ export class Grid {
   }
 
   setCursorPos(row: number, colStart: number) {
-    const rowEl = this.container.querySelector<HTMLDivElement>(".row")!;
-    this.cursorEl.style.top = row * rowEl.offsetHeight + "px";
-    this.cursorEl.style.left = colStart * 1 + "ch";
-    const cursorPos = this.cursorEl.getBoundingClientRect();
     document.querySelectorAll(".under-cursor").forEach((el) => {
       el.classList.remove("under-cursor");
     })
-    const charEl = document.elementFromPoint(
-      cursorPos.left + cursorPos.width / 2,
-      cursorPos.top + cursorPos.height / 2,
-    );
+    const charEl = this.container.querySelector(`.row-${row} .cell-${colStart}`);
     if (charEl) {
       charEl.classList.add("under-cursor");
     }
