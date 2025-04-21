@@ -15,7 +15,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
   'duskpoet/neocast',
-  build = ':Neocast build',
+  build = function()
+    require('neocast').build()
+  end,
   cmd = { 'Neocast' },
   opts = {  
     open_browser = true,  -- Auto-open browser when starting
