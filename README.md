@@ -15,15 +15,15 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
   'duskpoet/neocast',
-  build = function()
+  build = function() 
     require('neocast').build()
   end,
   cmd = { 'Neocast' },
-  opts = {  
-    open_browser = true,  -- Auto-open browser when starting
-    port = 9999,          -- Web server port
-    start_ngrok = false   -- Enable ngrok tunnel for remote access
-  },
+  opts = {
+      open_browser = true,  -- Auto-open browser when starting
+      port = 9999,          -- Web server port
+      start_ngrok = false   -- Enable ngrok tunnel for remote access
+  }
 }
 ```
 

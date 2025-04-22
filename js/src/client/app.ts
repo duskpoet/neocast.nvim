@@ -66,6 +66,7 @@ export class App {
           gridId,
           new Grid(this.container, width, height, this.highlights),
         );
+        this.grids.get(gridId)!.calibrateFontSize();
       }
     } else if (payload[0] === "grid_line") {
       const [_, ...rest] = payload;
@@ -81,6 +82,7 @@ export class App {
         const grid = this.grids.get(gridId);
         if (grid) {
           grid.clear();
+          grid.calibrateFontSize();
         }
       }
     } else if (payload[0] === "default_colors_set") {

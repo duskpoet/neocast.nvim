@@ -95,38 +95,4 @@ export class Grid {
       charEl.classList.add("under-cursor");
     }
   }
-
-  performScroll(top: number,
-    bottom: number,
-    left: number,
-    right: number,
-    rows: number,
-  ) {
-    const rowsEl = this.container.querySelectorAll<HTMLDivElement>(".row");
-    if (rows > 0) {
-      for (let i = top; i < bottom; i++) {
-        if (i < bottom - rows) {
-          for (let j = left; j < right; j++) {
-            rowsEl[i].querySelector(`.cell-${j}`)!.innerHTML = rowsEl[i + rows].querySelector(`.cell-${j}`)!.innerHTML;
-          }
-        } else {
-          for (let j = left; j < right; j++) {
-            rowsEl[i].querySelector(`.cell-${j}`)!.innerHTML = " ";
-          }
-        }
-      }
-    } else if (rows < 0) {
-      for (let i = top; i < bottom; i++) {
-        if (i < bottom + rows) {
-          for (let j = left; j < right; j++) {
-            rowsEl[i].querySelector(`.cell-${j}`)!.innerHTML = rowsEl[i - rows].querySelector(`.cell-${j}`)!.innerHTML;
-          }
-        } else {
-          for (let j = left; j < right; j++) {
-            rowsEl[i].querySelector(`.cell-${j}`)!.innerHTML = " ";
-          }
-        }
-      }
-    }
-  }
 }

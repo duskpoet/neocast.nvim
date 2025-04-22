@@ -11,25 +11,18 @@ local function log_to_file(msg)
   end
 end
 
-M._config = {
-  open_browser = true,
-  port = 9999,
-  start_ngrok = false,
-}
-
 M.setup = function(config)
-  if config then
-    M._config.open_browser = config.open_browser or M._config.open_browser
-    M._config.port = config.port or M._config.port
-    M._config.start_ngrok = config.start_ngrok or M._config.start_ngrok
-  end
+  config = config or {}
+  vim.g.neocast_open_browser = config.open_browser or true
+  vim.g.neocast_port = config.port or 9999
+  vim.g.neocast_start_ngrok = config.start_ngrok or false
 
   if not vim.fn.executable("npm") then
     print("npm is not installed. Please install it to use this plugin.")
     return
   end
 
-  if not vim.fn.executable("ngrok") and M._config.start_ngrok then
+  if not vim.fn.executable("ngrok") and config.start_ngrok then
     print("ngrok is not installed. Please install it to use this plugin.")
     return
   end
@@ -59,12 +52,18 @@ M.launch = function()
   vim.fn.serverstart("/tmp/neocast")
   local current_path = debug.getinfo(1, "S").source:sub(2)
   local current_dir = vim.fn.fnamemodify(current_path, ":h")
-  vim.system({ "npm", "start" }, {
+
+  -- Store process IDs to kill them when Neovim exits
+  local node_pid
+  local ngrok_pid
+
+  local node_handle, node_pid_val = vim.system({ "npm", "start" }, {
+    detached = false,
     cwd = vim.fs.joinpath(current_dir, "../../js"),
     env = {
       NVIM_LISTEN_ADDRESS = "/tmp/neocast",
       ALLOW_CONSOLE = "1",
-      PORT = tostring(M._config.port),
+      PORT = tostring(vim.g.neocast_port),
     },
     stderr = function(_, data)
       if data then
@@ -77,19 +76,23 @@ M.launch = function()
       end
     end,
   }, function()
-    print("Server stopped")
   end)
 
-  local serve_url = "http://localhost:" .. M._config.port
+  node_pid = node_pid_val
 
-  if M._config.start_ngrok then
-    vim.system({ "ngrok", "http", tostring(M._config.port) }, {
+  local serve_url = "http://localhost:" .. vim.g.neocast_port
+
+  if vim.g.neocast_start_ngrok then
+    local ngrok_handle, ngrok_pid_val = vim.system({ "ngrok", "http", tostring(vim.g.neocast_port) }, {
+      detached = false,
       stderr = function(_, data)
         if data then
           print("Ngrok error: " .. data)
         end
       end,
     })
+
+    ngrok_pid = ngrok_pid_val
 
     for i = 1, 5 do
       local ngrok_url = vim.fn.system("curl -s http://localhost:4040/api/tunnels")
@@ -104,15 +107,41 @@ M.launch = function()
     end
   end
 
-  if M._config.open_browser then
+  -- Register a single ExitPre autocmd to kill both processes
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    pattern = "*",
+    callback = function()
+      if ngrok_pid then
+        vim.loop.process_kill(ngrok_pid, 'SIGTERM')
+        log_to_file("Killed ngrok process: " .. ngrok_pid)
+      end
+
+      if node_pid then
+        vim.loop.process_kill(node_pid, 'SIGTERM')
+        log_to_file("Killed node process: " .. node_pid)
+
+        -- Give processes a moment to terminate gracefully
+        vim.wait(100)
+
+        -- -- Force kill if still running
+        -- if vim.fn.system("ps -p " .. node_pid .. " -o pid=") ~= "" then
+        --   vim.loop.process_kill(node_pid, 'SIGKILL')
+        --   log_to_file("Force killed node process: " .. node_pid)
+        -- end
+      end
+    end,
+    group = vim.api.nvim_create_augroup("NeoCastCleanup", { clear = true })
+  })
+
+  if vim.g.neocast_open_browser then
     vim.system({ "open", serve_url }, {
       -- stdout = function(_, data)
       --   if data then
       --     print("Browser output: " .. data)
       --   end
       -- end,
-      stderr = function(_, data)
-      end,
+      -- stderr = function(_, data)
+      -- end,
     })
   end
 end

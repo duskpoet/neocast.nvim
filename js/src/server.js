@@ -85,6 +85,34 @@ async function boot(nvim) {
   });
   await viteServer.listen(+process.env.PORT || 9999);
   console.log("Vite server started on port 9999");
+
+  // Return a cleanup function to properly close servers
+  return function cleanup() {
+    console.log("Cleaning up servers...");
+
+    // Closing connected clients and detach UI
+    nvim.uiDetach().catch(err => console.error("Error detaching UI:", err));
+
+    // Close both servers
+    return Promise.all([
+      new Promise(resolve => {
+        server.close(err => {
+          if (err) console.error("Error closing HTTP server:", err);
+          console.log("HTTP server closed");
+          resolve();
+        });
+      }),
+      new Promise(resolve => {
+        viteServer.close().then(() => {
+          console.log("Vite server closed");
+          resolve();
+        }).catch(err => {
+          console.error("Error closing Vite server:", err);
+          resolve();
+        });
+      })
+    ]);
+  };
 }
 
 export default boot;
