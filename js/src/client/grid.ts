@@ -3,6 +3,7 @@ import { Cell, Highlight } from "./types";
 import { invert } from "./util";
 
 export class Grid {
+  calibrated = false;
   constructor(
     private container: HTMLElement,
     private cols: number,
@@ -30,18 +31,29 @@ export class Grid {
   }
 
   calibrateFontSize() {
-    let fontSize = 30;
-    while (true) {
-      this.container.style.fontSize = fontSize + "px";
-      if (
-        fontSize < 10 ||
-        (this.container.scrollWidth <= document.body.offsetWidth &&
-          this.container.scrollHeight <= document.body.offsetHeight)
-      ) {
-        break;
-      }
-      fontSize--;
+    if (this.calibrated) {
+      return;
     }
+    this.calibrated = true;
+    let fontSize = 30;
+    const calibrateAndCheck = () => {
+      this.container.style.fontSize = fontSize + "px";
+      window.requestAnimationFrame(() => {
+        console.log("Font size:", fontSize);
+        console.log("Container size:", this.container.scrollWidth, this.container.scrollHeight);
+        console.log("Body size:", document.body.offsetWidth, document.body.offsetHeight);
+        if (
+          fontSize < 10 ||
+          (this.container.scrollWidth <= document.body.offsetWidth &&
+            this.container.scrollHeight <= document.body.offsetHeight)
+        ) {
+          return;
+        }
+        fontSize--;
+        calibrateAndCheck();
+      });
+    }
+    calibrateAndCheck();
   }
 
   clearRow(row: HTMLDivElement) {

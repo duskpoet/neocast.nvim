@@ -13,9 +13,22 @@ end
 
 M.setup = function(config)
   config = config or {}
-  vim.g.neocast_open_browser = config.open_browser or true
-  vim.g.neocast_port = config.port or 9999
-  vim.g.neocast_start_ngrok = config.start_ngrok or false
+
+  if config.open_browser == nil then
+    vim.g.neocast_open_browser = true
+  else
+    vim.g.neocast_open_browser = config.open_browser
+  end
+  if config.port == nil then
+    vim.g.neocast_port = 9999
+  else
+    vim.g.neocast_port = config.port
+  end
+  if config.start_ngrok == nil then
+    vim.g.neocast_start_ngrok = false
+  else
+    vim.g.neocast_start_ngrok = config.start_ngrok
+  end
 
   if not vim.fn.executable("npm") then
     print("npm is not installed. Please install it to use this plugin.")
